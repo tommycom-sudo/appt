@@ -1,0 +1,54 @@
+{
+  "doctorSchedules": [
+    {
+      "id": 1,
+      "doctorId": "D001",
+      "doctorName": "张医生",
+      "scheduleDate": "2024-03-30",
+      "period": "上午",
+      "initialSlots": 5,
+      "followupSlots": 5,
+      "totalSlots": 10
+    },
+    {
+      "id": 2,
+      "doctorId": "D002",
+      "doctorName": "李医生",
+      "scheduleDate": "2024-03-30",
+      "period": "上午",
+      "initialSlots": 4,
+      "followupSlots": 6,
+      "totalSlots": 10
+    },
+    {
+      "id": 3,
+      "doctorId": "D003",
+      "doctorName": "王医生",
+      "scheduleDate": "2024-03-30",
+      "period": "上午",
+      "initialSlots": 6,
+      "followupSlots": 4,
+      "totalSlots": 10
+    },
+    {
+      "id": 4,
+      "doctorId": "D001",
+      "doctorName": "张医生",
+      "scheduleDate": "2024-03-30",
+      "period": "下午",
+      "initialSlots": 5,
+      "followupSlots": 5,
+      "totalSlots": 10
+    },
+    {
+      "id": 5,
+      "doctorId": "D002",
+      "doctorName": "李医生",
+      "scheduleDate": "2024-03-30",
+      "period": "下午",
+      "initialSlots": 4,
+      "followupSlots": 6,
+      "totalSlots": 10
+    }
+  ]
+} 

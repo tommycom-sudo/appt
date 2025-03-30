@@ -1,0 +1,19 @@
+{
+  "channels": [
+    {
+      "id": 1,
+      "name": "系统渠道",
+      "percentage": 1
+    },
+    {
+      "id": 2,
+      "name": "线上渠道",
+      "percentage": 99
+    },
+    {
+      "id": 3,
+      "name": "复诊渠道",
+      "percentage": 0
+    }
+  ]
+} 

@@ -1,0 +1,60 @@
+{
+  "timeSlots": [
+    {
+      "id": 1,
+      "startTime": "08:00",
+      "endTime": "08:30",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 2,
+      "startTime": "08:30",
+      "endTime": "09:00",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 3,
+      "startTime": "09:00",
+      "endTime": "09:30",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 4,
+      "startTime": "09:30",
+      "endTime": "10:00",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 5,
+      "startTime": "10:00",
+      "endTime": "10:30",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 6,
+      "startTime": "10:30",
+      "endTime": "11:00",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 7,
+      "startTime": "11:00",
+      "endTime": "11:30",
+      "totalSlots": 10,
+      "usedSlots": 0
+    },
+    {
+      "id": 8,
+      "startTime": "11:30",
+      "endTime": "12:00",
+      "totalSlots": 10,
+      "usedSlots": 0
+    }
+  ]
+} 
