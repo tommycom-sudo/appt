@@ -9,20 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
+    "@ant-design/pro-components": "^2.8.7",
     "@emotion/is-prop-valid": "^1.3.1",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
+    "antd": "^5.24.6",
     "mina-scheduler": "^1.0.4",
     "next": "14.2.6",
+    "oracledb": "^6.3.0",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/oracledb": "^6.5.4",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.5",
     "eslint": "^8",
     "eslint-config-next": "14.2.6",
     "postcss": "^8",
