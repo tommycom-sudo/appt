@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, message, Progress } from 'antd';
+import { PlusOutlined, ExportOutlined } from '@ant-design/icons';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
+import * as XLSX from 'xlsx';
 
 // 定义数据类型
 type Patient = {
@@ -84,8 +85,71 @@ const handleDelete = (record: Patient) => {
   message.info(`删除患者：${record.name}`);
 };
 
+const exportWithProgress = async (data: any[], filename: string) => {
+  const total = data.length;
+  let processed = 0;
+  
+  message.loading({ content: '正在导出...', key: 'export' });
+  
+  // 处理数据
+  const processedData = data.map(item => {
+    processed++;
+    message.loading({
+      content: `正在导出 (${processed}/${total})`,
+      key: 'export'
+    });
+    return {
+      // 转换数据格式
+      ...item
+    };
+  });
+  
+  // 导出
+  const ws = XLSX.utils.json_to_sheet(processedData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+  
+  message.success({ content: '导出成功', key: 'export' });
+};
+
+const exportToExcel = (data: any[], filename: string) => {
+  try {
+    const exportData = data.map(item => ({
+      '患者编号': item.patientNo,
+      '姓名': item.name,
+      '手机号': item.phone,
+      '生日': item.birthday,
+      '性别': item.gender,
+      '状态': item.status === '1' ? '正常' : item.status === '3' ? '已禁用' : '待处理'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    const wscols = [
+      {wch: 15},
+      {wch: 10},
+      {wch: 15},
+      {wch: 12},
+      {wch: 8},
+      {wch: 10}
+    ];
+    ws['!cols'] = wscols;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "患者列表");
+    XLSX.writeFile(wb, `${filename}_${new Date().toLocaleDateString()}.xlsx`);
+    
+    message.success('导出成功');
+  } catch (error) {
+    message.error('导出失败');
+    console.error('导出错误:', error);
+  }
+};
+
 export default function PatientList() {
   const [mounted, setMounted] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -149,7 +213,32 @@ export default function PatientList() {
         >
           新建
         </Button>,
+        <Button
+          key="exportAll"
+          icon={<ExportOutlined />}
+          onClick={async () => {
+            const res = await fetch('/api/patients/export');
+            const data = await res.json();
+            exportToExcel(data, '患者列表');
+          }}
+        >
+          导出 Excel
+        </Button>,
+        
+        <Button
+         key="export"
+         disabled={!selectedRows?.length}
+         onClick={() => exportToExcel(selectedRows, '患者列表')}
+        >
+         导出选择
+       </Button>
+        
       ]}
+      rowSelection={{
+        onChange: (_, selectedRows) => {
+          setSelectedRows(selectedRows);
+        }
+      }}
     />
   );
 } 
