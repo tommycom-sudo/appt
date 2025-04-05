@@ -100,10 +100,11 @@ export default function PatientList() {
       columns={columns}
       request={async (params) => {
         // 构建查询参数
-        const { current, pageSize, ...rest } = params;
+        const { current, pageSize, keyword,...rest } = params;
         const queryParams = new URLSearchParams({
           current: current?.toString() || '1',
           pageSize: pageSize?.toString() || '10',
+          keyword: keyword || '',  // 添加搜索关键词
           ...rest,
         });
 
@@ -112,11 +113,12 @@ export default function PatientList() {
         console.log("res===============",res);
         //const res = await fetch(`/test?${queryParams}`);
         const data = await res.json();
-        // 添加完整的数据结构日志
-console.log("完整数据:", data);
-console.log("数据类型:", typeof data);
-console.log("数据属性:", Object.keys(data));
+        /*
+        console.log("数据:", data);
+        console.log("类型:", typeof data);
+        console.log("属性:", Object.keys(data));
         console.log("data===============",data.total);
+        */
         return {
           data: data.data,
           success: data.success,

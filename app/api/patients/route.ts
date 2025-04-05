@@ -6,14 +6,39 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const current = parseInt(searchParams.get('current') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
+    const patientNo = searchParams.get('patientNo') || '';
+    const name = searchParams.get('name') || '';
+    const phone = searchParams.get('phone') || '';
     const keyword = searchParams.get('keyword') || '';
 
     // 构建查询条件
     let whereClause = '';
     const params: any[] = [];
     
+    if (patientNo || name || phone) {
+      whereClause = ` WHERE `;
+      const conditions = [];
+      
+      if (patientNo) {
+        conditions.push(`CD LIKE '%' || :${params.length + 1} || '%'`);
+        params.push(patientNo);
+      }
+      
+      if (name) {
+        conditions.push(`NA LIKE '%' || :${params.length + 1} || '%'`);
+        params.push(name);
+      }
+      
+      if (phone) {
+        conditions.push(`MOBILE LIKE '%' || :${params.length + 1} || '%'`);
+        params.push(phone);
+      }
+      
+      whereClause += conditions.join(' OR ');
+    }
+
     if (keyword) {
-      whereClause = ` WHERE NA LIKE '%' || :1 || '%' OR CD LIKE '%' || :1 || '%' OR MOBILE LIKE '%' || :1 || '%'`;
+      whereClause += ` AND (NA LIKE '%' || :${params.length + 1} || '%' OR CD LIKE '%' || :${params.length + 1} || '%' OR MOBILE LIKE '%' || :${params.length + 1} || '%')`;
       params.push(keyword);
       console.log(whereClause);
     }
@@ -63,7 +88,8 @@ export async function GET(request: Request) {
       data,
       success: true,
       total,
-      pageSize
+      pageSize,
+      current
     });
   } catch (error) {
     console.error('Database error:', error);
