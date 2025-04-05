@@ -1,40 +1,114 @@
 import { NextResponse } from 'next/server';
-import patientData from './data.json';
+import { query } from '@/lib/db';
+import oracledb from 'oracledb';
+import { Console } from 'console';
+
+
+interface UserRow {
+  id: string;
+  patientNo: string;
+  name: string;
+  phone: string;
+  birthday: string;
+  gender: string;
+  status: number;
+}
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get('current') || '1');
-  const pageSize = parseInt(searchParams.get('pageSize') || '10');
-  const keyword = searchParams.get('keyword') || '';
-  // 记录搜索参数
-  console.log('搜索参数:', {
-    page,
-    pageSize,
-    keyword,
-    rawParams: Object.fromEntries(searchParams)
-  });
-  // 模拟搜索功能
-  let filteredData = patientData.data;
-  const params = Object.fromEntries(searchParams);
-  
-  if (params.name) {
-    filteredData = filteredData.filter(item => item.name.includes(params.name));
-  }
-  if (params.patientNo) {
-    filteredData = filteredData.filter(item => item.patientNo.includes(params.patientNo));
-  }
-  if (params.phone) {
-    filteredData = filteredData.filter(item => item.phone.includes(params.phone));
-  }
+  try {
+    const { searchParams } = new URL(request.url);
+    const current = parseInt(searchParams.get('current') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '10');
+    const keyword = searchParams.get('keyword') || '';
 
-  // 模拟分页
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const paginatedData = filteredData.slice(start, end);
+    // 构建查询条件
+    let whereClause = '';
+    const params: any[] = [];
+    
+    if (keyword) {
+      whereClause = ` WHERE NA LIKE '%' || :1 || '%' OR CD LIKE '%' || :1 || '%' OR MOBILE LIKE '%' || :1 || '%'`;
+      params.push(keyword);
+      console.log(whereClause);
+    }
 
-  return NextResponse.json({
-    data: paginatedData,
-    success: true,
-    total: filteredData.length,
-  });
+    // 计算总记录数
+    const countSql = `SELECT COUNT(*) as total FROM BBP.HI_SYS_USER${whereClause}`;
+    const countResult = await query(countSql, params);
+    const total = countResult.rows[0][0];
+
+    // 分页查询
+    const offset = (current - 1) * pageSize;
+    const sql = `
+      SELECT * FROM (
+        SELECT a.*, ROWNUM rnum FROM (
+          SELECT 
+            ID_USER as id,
+            CD as patientNo,
+            NA as name,
+            MOBILE as phone,
+            TO_CHAR(DT_CREATE, 'YYYY-MM-DD') as birthday,
+           CASE  TO_NUMBER(SD_IDTP)   WHEN  1  THEN '男' WHEN  2  THEN '女' ELSE '未知' END as gender,
+            case
+                WHEN NVL(TRIM(FG_ACTIVE), '') = '1' THEN '1'
+                WHEN NVL(TRIM(FG_ACTIVE), '') = '0' THEN '3'
+                ELSE '2' END as status 
+          FROM BBP.HI_SYS_USER${whereClause}
+          ORDER BY DT_CREATE DESC
+        ) a WHERE ROWNUM <= :${params.length + 1}
+      ) WHERE rnum > :${params.length + 2}
+    `;
+   
+    console.log("params",[...params, offset + pageSize, offset]);
+    const result = await query(sql, [...params, offset + pageSize, offset]);
+    
+    // 转换数据格式
+    /*
+    const data = result.rows.map((row: any) => ({
+      id: row.ID,
+      patientNo: row.PATIENT_NO,  // 使用列名
+      name: row.NAME,          // 使用列名
+      phone: row.PHONE,        // 使用列名
+      birthday: row.BIRTHDAY,  // 使用列名
+      gender: row.GENDER,      // 使用列名
+      status: row.STATUS       // 使用列名
+    }));
+    */
+    const data = result.rows.map((row: any, index: number) => {
+      /*
+      console.log(`=== 第 ${index + 1} 行数据 ===`);
+      console.log('原始数据:', row);
+      console.log('转换后数据:', {
+        id: row.ID,
+        patientNo: row.PATIENTNO,  // 使用列名
+        name: row.NAME,          // 使用列名
+        phone: row.PHONE,        // 使用列名
+        birthday: row.BIRTHDAY,  // 使用列名
+        gender: row.GENDER,      // 使用列名
+        status: row.STATUS       // 使用列名
+      });
+      console.log('=====================');
+      */
+      return {
+        id: row.ID,
+        patientNo: row.PATIENTNO,
+        name: row.NAME,          // 使用列名
+        phone: row.PHONE,        // 使用列名
+        birthday: row.BIRTHDAY,  // 使用列名
+        gender: row.GENDER,      // 使用列名
+        status: row.STATUS       // 使用列名
+      };
+    });
+    
+    return NextResponse.json({
+      data,
+      success: true,
+      total
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
 } 

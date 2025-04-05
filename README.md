@@ -1,3 +1,6 @@
+连接池创建成功
+Database error: Error: ORA-12704: 字符集不匹配
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

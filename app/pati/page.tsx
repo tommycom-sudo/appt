@@ -109,6 +109,7 @@ export default function PatientList() {
 
         // 发送请求
         const res = await fetch(`/api/patients?${queryParams}`);
+        //const res = await fetch(`/test?${queryParams}`);
         const data = await res.json();
         return {
           data: data.data,
