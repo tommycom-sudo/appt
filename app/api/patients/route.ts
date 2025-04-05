@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
- 
+// 输入验证和清理函数
+function sanitizeInput(input: string): string {
+  return input
+    .replace(/%/g, '')  // 移除 %
+    .replace(/_/g, '\\_')  // 转义 _
+    .trim();  // 移除首尾空格
+}
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -8,40 +14,40 @@ export async function GET(request: Request) {
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
     const patientNo = searchParams.get('patientNo') || '';
     const name = searchParams.get('name') || '';
-    const phone = searchParams.get('phone') || '';
-    const keyword = searchParams.get('keyword') || '';
+    const phone = searchParams.get('phone') || ''; 
+
+
+    // 对所有输入参数进行处理
+    const sanitizedPatientNo = sanitizeInput(patientNo);
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedPhone = sanitizeInput(phone); 
 
     // 构建查询条件
     let whereClause = '';
-    const params: any[] = [];
+    const params: string[] = [];
     
-    if (patientNo || name || phone) {
+    if (sanitizedPatientNo || sanitizedName || sanitizedPhone) {
       whereClause = ` WHERE `;
       const conditions = [];
       
-      if (patientNo) {
+      if (sanitizedPatientNo) {
         conditions.push(`CD LIKE '%' || :${params.length + 1} || '%'`);
-        params.push(patientNo);
+        params.push(sanitizedPatientNo);
       }
       
-      if (name) {
+      if (sanitizedName) {
         conditions.push(`NA LIKE '%' || :${params.length + 1} || '%'`);
-        params.push(name);
+        params.push(sanitizedName);
       }
       
-      if (phone) {
+      if (sanitizedPhone) {
         conditions.push(`MOBILE LIKE '%' || :${params.length + 1} || '%'`);
-        params.push(phone);
+        params.push(sanitizedPhone);
       }
       
       whereClause += conditions.join(' OR ');
     }
-
-    if (keyword) {
-      whereClause += ` AND (NA LIKE '%' || :${params.length + 1} || '%' OR CD LIKE '%' || :${params.length + 1} || '%' OR MOBILE LIKE '%' || :${params.length + 1} || '%')`;
-      params.push(keyword);
-      console.log(whereClause);
-    }
+ 
 
     // 计算总记录数
     const countSql = `SELECT COUNT(*) as total FROM BBP.HI_SYS_USER${whereClause}`;
@@ -59,11 +65,12 @@ export async function GET(request: Request) {
             NA as name,
             MOBILE as phone,
             TO_CHAR(DT_CREATE, 'YYYY-MM-DD') as birthday,
-           CASE  TO_NUMBER(SD_IDTP)   WHEN  1  THEN '男' WHEN  2  THEN '女' ELSE '未知' END as gender,
-            case
-                WHEN NVL(TRIM(FG_ACTIVE), '') = '1' THEN '1'
-                WHEN NVL(TRIM(FG_ACTIVE), '') = '0' THEN '3'
-                ELSE '2' END as status 
+            CASE TO_NUMBER(SD_IDTP) WHEN 1 THEN '男' WHEN 2 THEN '女' ELSE '未知' END as gender,
+            CASE
+              WHEN NVL(TRIM(FG_ACTIVE), '') = '1' THEN '1'
+              WHEN NVL(TRIM(FG_ACTIVE), '') = '0' THEN '3'
+              ELSE '2' 
+            END as status 
           FROM BBP.HI_SYS_USER${whereClause}
           ORDER BY DT_CREATE DESC
         ) a WHERE ROWNUM <= :${params.length + 1}
@@ -73,19 +80,16 @@ export async function GET(request: Request) {
     console.log("params",[...params, offset + pageSize, offset]);
     const result = await query(sql, [...params, offset + pageSize, offset]);
     
-    // 转换数据格式
-    const data = result.rows.map((row: any) => ({
-      id: row.ID,
-      patientNo: row.PATIENTNO,  // 使用列名
-      name: row.NAME,          // 使用列名
-      phone: row.PHONE,        // 使用列名
-      birthday: row.BIRTHDAY,  // 使用列名
-      gender: row.GENDER,      // 使用列名
-      status: row.STATUS       // 使用列名
-    }));
-  
     return NextResponse.json({
-      data,
+      data: result.rows.map((row: any) => ({
+        id: row.ID,
+        patientNo: row.PATIENTNO,
+        name: row.NAME,
+        phone: row.PHONE,
+        birthday: row.BIRTHDAY,
+        gender: row.GENDER,
+        status: row.STATUS
+      })),
       success: true,
       total,
       pageSize,

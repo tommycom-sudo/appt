@@ -100,11 +100,10 @@ export default function PatientList() {
       columns={columns}
       request={async (params) => {
         // 构建查询参数
-        const { current, pageSize, keyword,...rest } = params;
+        const { current, pageSize,...rest } = params;
         const queryParams = new URLSearchParams({
           current: current?.toString() || '1',
           pageSize: pageSize?.toString() || '10',
-          keyword: keyword || '',  // 添加搜索关键词
           ...rest,
         });
 
