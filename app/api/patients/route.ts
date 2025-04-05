@@ -21,9 +21,8 @@ export async function GET(request: Request) {
     // 计算总记录数
     const countSql = `SELECT COUNT(*) as total FROM BBP.HI_SYS_USER${whereClause}`;
     const countResult = await query(countSql, params);
-    console.log("countResult",countResult);
     const total = (countResult.rows[0] as any).TOTAL;
-    console.log("total=",total);
+    
     // 分页查询
     const offset = (current - 1) * pageSize;
     const sql = `
@@ -63,7 +62,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       data,
       success: true,
-      total
+      total,
+      pageSize
     });
   } catch (error) {
     console.error('Database error:', error);

@@ -121,11 +121,16 @@ console.log("数据属性:", Object.keys(data));
           data: data.data,
           success: data.success,
           total: data.total,
+          pageSize: pageSize,
+          current: current,
         };
       }}
       rowKey="id"
       pagination={{
-        pageSize: 10,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        pageSizeOptions: ['10', '20', '50', '100'],
+        defaultPageSize: 10
       }}
       search={{
         labelWidth: 'auto',

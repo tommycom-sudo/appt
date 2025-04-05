@@ -56,6 +56,7 @@ export async function query(sql: string, params: any[] = []): Promise<QueryResul
   try {
     // 从连接池获取连接
     connection = await pool.getConnection();
+    console.log("sql{}, parms {}",sql, params);
     const result = await connection.execute(sql, params, {
       outFormat: oracledb.OUT_FORMAT_OBJECT,
     });
