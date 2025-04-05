@@ -109,8 +109,14 @@ export default function PatientList() {
 
         // 发送请求
         const res = await fetch(`/api/patients?${queryParams}`);
+        console.log("res===============",res);
         //const res = await fetch(`/test?${queryParams}`);
         const data = await res.json();
+        // 添加完整的数据结构日志
+console.log("完整数据:", data);
+console.log("数据类型:", typeof data);
+console.log("数据属性:", Object.keys(data));
+        console.log("data===============",data.total);
         return {
           data: data.data,
           success: data.success,

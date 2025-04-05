@@ -33,9 +33,9 @@ export async function GET(request: Request) {
 
     // 计算总记录数
     const countSql = `SELECT COUNT(*) as total FROM BBP.HI_SYS_USER${whereClause}`;
-    const countResult = await query(countSql, params);
-    const total = countResult.rows[0][0];
-
+    const countResult = await query(countSql, params); 
+    const total = (countResult.rows[0] as any).TOTAL;
+ 
     // 分页查询
     const offset = (current - 1) * pageSize;
     const sql = `
@@ -62,43 +62,17 @@ export async function GET(request: Request) {
     const result = await query(sql, [...params, offset + pageSize, offset]);
     
     // 转换数据格式
-    /*
+    
     const data = result.rows.map((row: any) => ({
       id: row.ID,
-      patientNo: row.PATIENT_NO,  // 使用列名
+      patientNo: row.PATIENTNO,  // 使用列名
       name: row.NAME,          // 使用列名
       phone: row.PHONE,        // 使用列名
       birthday: row.BIRTHDAY,  // 使用列名
       gender: row.GENDER,      // 使用列名
       status: row.STATUS       // 使用列名
     }));
-    */
-    const data = result.rows.map((row: any, index: number) => {
-      /*
-      console.log(`=== 第 ${index + 1} 行数据 ===`);
-      console.log('原始数据:', row);
-      console.log('转换后数据:', {
-        id: row.ID,
-        patientNo: row.PATIENTNO,  // 使用列名
-        name: row.NAME,          // 使用列名
-        phone: row.PHONE,        // 使用列名
-        birthday: row.BIRTHDAY,  // 使用列名
-        gender: row.GENDER,      // 使用列名
-        status: row.STATUS       // 使用列名
-      });
-      console.log('=====================');
-      */
-      return {
-        id: row.ID,
-        patientNo: row.PATIENTNO,
-        name: row.NAME,          // 使用列名
-        phone: row.PHONE,        // 使用列名
-        birthday: row.BIRTHDAY,  // 使用列名
-        gender: row.GENDER,      // 使用列名
-        status: row.STATUS       // 使用列名
-      };
-    });
-    
+  
     return NextResponse.json({
       data,
       success: true,
