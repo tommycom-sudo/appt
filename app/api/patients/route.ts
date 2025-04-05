@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import oracledb from 'oracledb';
-import { Console } from 'console';
-
-
-interface UserRow {
-  id: string;
-  patientNo: string;
-  name: string;
-  phone: string;
-  birthday: string;
-  gender: string;
-  status: number;
-}
-
+ 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -33,9 +20,10 @@ export async function GET(request: Request) {
 
     // 计算总记录数
     const countSql = `SELECT COUNT(*) as total FROM BBP.HI_SYS_USER${whereClause}`;
-    const countResult = await query(countSql, params); 
+    const countResult = await query(countSql, params);
+    console.log("countResult",countResult);
     const total = (countResult.rows[0] as any).TOTAL;
- 
+    console.log("total=",total);
     // 分页查询
     const offset = (current - 1) * pageSize;
     const sql = `
@@ -62,7 +50,6 @@ export async function GET(request: Request) {
     const result = await query(sql, [...params, offset + pageSize, offset]);
     
     // 转换数据格式
-    
     const data = result.rows.map((row: any) => ({
       id: row.ID,
       patientNo: row.PATIENTNO,  // 使用列名
