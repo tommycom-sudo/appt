@@ -10,61 +10,64 @@ import dayjs from 'dayjs';
 
 // 定义数据类型
 type StopPatient = {
-  napi: string;
-  idpi: string;
-  mobilerg: string;
-  jgmc: string;
-  ksmc: string;
-  da_sc: string;
-  sd_sp_res_cd: string;
-  sd_pipypm_cd: string;
-  ysmc: string;
+  id: string;
+  name: string;
+  phone: string;
+  hospitalName: string;
+  departmentName: string;
+  appointmentDate: string;
+  appointmentType: string;
+  priorityLevel: string;
+  doctorName: string;
+  refundStatus: string;
+  visitTime: string;
+  visitId: string;
 };
 
 // 定义列配置
 const columns: ProColumns<StopPatient>[] = [
   {
     title: '患者姓名',
-    dataIndex: 'napi',
+    dataIndex: 'name',
     valueType: 'text',
   },
   {
     title: '患者ID',
-    dataIndex: 'idpi',
+    dataIndex: 'id',
     valueType: 'text',
     copyable: true,
     ellipsis: true,
   },
   {
     title: '联系电话',
-    dataIndex: 'mobilerg',
+    dataIndex: 'phone',
     valueType: 'text',
     copyable: true,
     ellipsis: true,
   },
   {
     title: '机构名称',
-    dataIndex: 'jgmc',
+    dataIndex: 'hospitalName',
     valueType: 'text',
   },
   {
     title: '科室名称',
-    dataIndex: 'ksmc',
+    dataIndex: 'departmentName',
     valueType: 'text',
   },
   {
     title: '停诊日期',
-    dataIndex: 'da_sc',
+    dataIndex: 'appointmentDate',
     valueType: 'date',
   },
   {
     title: '停诊原因',
-    dataIndex: 'sd_sp_res_cd',
+    dataIndex: 'appointmentType',
     valueType: 'text',
   },
   {
     title: '患者类型',
-    dataIndex: 'sd_pipypm_cd',
+    dataIndex: 'priorityLevel',
     valueEnum: {
       '1': { text: '普通', status: 'Default' },
       '2': { text: '急诊', status: 'Error' },
@@ -74,7 +77,7 @@ const columns: ProColumns<StopPatient>[] = [
   },
   {
     title: '医生姓名',
-    dataIndex: 'ysmc',
+    dataIndex: 'doctorName',
     valueType: 'text',
   },
 ];
@@ -83,17 +86,17 @@ const columns: ProColumns<StopPatient>[] = [
 const exportToExcel = (data: any[], filename: string) => {
   try {
     const exportData = data.map(item => ({
-      '患者姓名': item.napi,
-      '患者ID': item.idpi,
-      '联系电话': item.mobilerg,
-      '机构名称': item.jgmc,
-      '科室名称': item.ksmc,
-      '停诊日期': item.da_sc,
-      '停诊原因': item.sd_sp_res_cd,
-      '患者类型': item.sd_pipypm_cd === '1' ? '普通' : 
-                 item.sd_pipypm_cd === '2' ? '急诊' : 
-                 item.sd_pipypm_cd === '3' ? 'VIP' : '其他',
-      '医生姓名': item.ysmc
+      '患者姓名': item.name,
+      '患者ID': item.id,
+      '联系电话': item.phone,
+      '机构名称': item.hospitalName,
+      '科室名称': item.departmentName,
+      '停诊日期': item.appointmentDate,
+      '停诊原因': item.appointmentType,
+      '患者类型': item.priorityLevel === '1' ? '普通' : 
+                 item.priorityLevel === '2' ? '急诊' : 
+                 item.priorityLevel === '3' ? 'VIP' : '其他',
+      '医生姓名': item.doctorName
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -151,7 +154,7 @@ export default function StopPatientList() {
         // 发送请求
         const res = await fetch(`/api/patients/stop?${queryParams}`);
         const data = await res.json();
-        
+        console.log("data===============",data);
         return {
           data: data.data,
           success: data.success,
@@ -160,7 +163,7 @@ export default function StopPatientList() {
           current: current,
         };
       }}
-      rowKey="idpi"
+      rowKey="visitId"
       pagination={{
         showSizeChanger: true,
         showQuickJumper: true,

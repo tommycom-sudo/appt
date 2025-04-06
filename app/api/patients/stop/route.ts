@@ -68,7 +68,10 @@ export async function GET(request: Request) {
             TO_CHAR(t1.da_sc, 'yyyy-MM-dd') as da_sc,
             map_dic_item_na(t1.sd_sp_res_cd, 'hi.his.spRes') as sd_sp_res_cd,
             NVL(pipypm.SD_PIPYPM_CD, '4') as sd_pipypm_cd,
-            t6.na as ysmc
+            t6.na as ysmc,
+            DECODE(T4.SD_APPTSTATUS_CD , '4', '已退款', '5','未退', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
+            t4.dt_b_est AS jzsj,
+            stoe.id_vismed
           FROM HI_SC_DA t1
           LEFT JOIN bbp.hi_sys_org t2 ON t2.id_org = t1.id_org
           LEFT JOIN bbp.hi_sys_dep t3 ON t3.id_dep = t1.ID_DEP_RES
@@ -113,8 +116,20 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: result.rows,
-      metaData: result.metaData,
+      data: result.rows.map((row: any) => ({
+        id: row.IDPI,
+        name: row.NAPI,
+        phone: row.MOBILERG,
+        hospitalName: row.JGMC,
+        departmentName: row.KSMC,
+        appointmentDate: row.DA_SC,
+        appointmentType: row.SD_SP_RES_CD,
+        priorityLevel: row.SD_PIPYPM_CD,
+        doctorName: row.YSMC,
+        refundStatus: row.SD_APPTSTATUS_CD,
+        visitTime: row.JZSJ,
+        visitId: row.ID_VISMED
+      })),
       total,
       pageSize,
       current
