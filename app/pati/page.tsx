@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, message, Progress } from 'antd';
+import { Button, message, Progress,Modal } from 'antd';
 import { PlusOutlined, ExportOutlined } from '@ant-design/icons';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -83,34 +83,6 @@ const handleEdit = (record: Patient) => {
 // 处理删除
 const handleDelete = (record: Patient) => {
   message.info(`删除患者：${record.name}`);
-};
-
-const exportWithProgress = async (data: any[], filename: string) => {
-  const total = data.length;
-  let processed = 0;
-  
-  message.loading({ content: '正在导出...', key: 'export' });
-  
-  // 处理数据
-  const processedData = data.map(item => {
-    processed++;
-    message.loading({
-      content: `正在导出 (${processed}/${total})`,
-      key: 'export'
-    });
-    return {
-      // 转换数据格式
-      ...item
-    };
-  });
-  
-  // 导出
-  const ws = XLSX.utils.json_to_sheet(processedData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  XLSX.writeFile(wb, `${filename}.xlsx`);
-  
-  message.success({ content: '导出成功', key: 'export' });
 };
 
 const exportToExcel = (data: any[], filename: string) => {
@@ -219,6 +191,9 @@ export default function PatientList() {
           onClick={async () => {
             const res = await fetch('/api/patients/export');
             const data = await res.json();
+            
+            console.log('点击导出按钮，选中行数:', data.length);  // 调试日志
+            //exportWithProgress(data, '患者列表');
             exportToExcel(data, '患者列表');
           }}
         >
