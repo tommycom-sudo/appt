@@ -2,7 +2,7 @@
 //http://localhost:3000/api/patients/stop?stopDate=2025-04-03&pageSize=100&current=1
 import { useEffect, useState } from 'react';
 import { Button, message, DatePicker, Space } from 'antd';
-import { ExportOutlined } from '@ant-design/icons';
+import { ExportOutlined, DollarOutlined } from '@ant-design/icons';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import * as XLSX from 'xlsx';
@@ -142,6 +142,55 @@ const exportToExcel = (data: any[], filename: string) => {
   }
 };
 
+// 退费函数
+const handleRefund = async (selectedRows: StopPatient[]) => {
+  try {
+    if (!selectedRows || selectedRows.length === 0) {
+      message.warning('请选择需要退费的患者');
+      return;
+    }
+
+    const visitIds = selectedRows.map(row => row.visitId).filter(id => id);
+    if (visitIds.length === 0) {
+      message.warning('所选患者没有有效的就诊ID');
+      return;
+    }
+
+    const response = await fetch('https://hihistest.smukqyy.cn/*.jsonRequest', {
+      method: 'POST',
+      headers: {
+        'Accept': '*/*',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+        'Connection': 'keep-alive',
+        'Cookie': 'tk=6683589ba6e7540015a3ab06',
+        'Origin': 'https://hihistest.smukqyy.cn',
+        'Referer': 'https://hihistest.smukqyy.cn/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0',
+        'X-Service-Id': 'exchange.holdBackRpc',
+        'X-Service-Method': 'doNowRefund',
+        'content-Type': 'application/json',
+        'encoding': 'utf-8',
+        'sec-ch-ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Microsoft Edge";v="128"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"'
+      },
+      body: JSON.stringify(visitIds.map(id => ({ idVismed: id })))
+    });
+
+    if (response.ok) {
+      message.success('退费请求已发送');
+    } else {
+      message.error('退费请求失败');
+    }
+  } catch (error) {
+    console.error('退费错误:', error);
+    message.error('退费操作失败');
+  }
+};
+
 export default function StopPatientList() {
   const [mounted, setMounted] = useState(false);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -204,6 +253,14 @@ export default function StopPatientList() {
             }}
           />
         </Space>,
+        <Button
+          key="refund"
+          icon={<DollarOutlined />}
+          disabled={!selectedRows?.length}
+          onClick={() => handleRefund(selectedRows)}
+        >
+          退费
+        </Button>,
         <Button
           key="exportAll"
           icon={<ExportOutlined />}
