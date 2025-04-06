@@ -1,0 +1,68 @@
+--1查询指定日期停诊的排班
+SELECT 
+    t1.id_scda AS IDSCDA,
+    t1.id_scres AS IDSCRES,
+    t1.sd_stp_cd AS SDSTPCD,
+    t1.dt_stp AS DTSTP,
+    t1.da_sc AS DA_SC
+FROM (
+    SELECT 
+        t.ID_SCDA AS id_scda,
+        t.ID_SCRES AS id_scres,
+        t.SD_STP_CD AS sd_stp_cd,
+        t.dt_stp,
+        t.da_sc
+    FROM HI_SC_DA t
+    WHERE t.SD_SC_STA_cd = '2'
+    ORDER BY t.dt_stp DESC
+) t1
+WHERE TRUNC(t1.DA_SC) = TRUNC(TO_DATE(:is_stopDate, 'YYYY-MM-DD'))
+
+--2.查询指定日期停诊的相关患者清单
+  select t5.na_pi as napi,
+        t5.id_pi as idpi,
+        nvl(t7.phone_picont,t5.mobilerg) as mobilerg,
+        t2.na as jgmc,
+        decode(t3.na,'H-口腔预防科(牙体牙髓病科三室)','H-口腔预防科',t3.na)||'('||t6.na||')' as ksmc,
+        to_char(t1.da_sc,'yyyy-MM-dd') as da_sc,
+        map_dic_item_na(t1.sd_sp_res_cd,'hi.his.spRes') as sd_sp_res_cd,
+        nvl(pipypm.SD_PIPYPM_CD,'4') as sd_pipypm_cd,
+        t6.na as ysmc
+        from HI_SC_DA t1
+        left join bbp.hi_sys_org t2 on t2.id_org = t1.id_org
+        left join bbp.hi_sys_dep t3 on t3.id_dep = t1.ID_DEP_RES
+        left join hi_appt t4 on t4.id_scda=t1.id_scda
+        left join hi_pi t5 on t5.id_pi=t4.id_pi
+        left join bbp.hi_sys_user t6 on t6.id_user = t1.ID_ENTITY_RES
+        left join hi_appt_op t7 on t7.id_appt=t4.id_appt
+        left join Hi_bil_Med_st_oe stoe ON stoe.id_vismed = t4.id_vismed
+        AND stoe.SD_MEDST_CD = '112'
+        left join HI_BIL_MED_PIPY_OE pipyoe ON t4.ID_VISMED = pipyoe.ID_VISMED
+        AND pipyoe.eu_direct = '1'
+        AND stoe.ID_MEDSTOE = pipyoe.ID_MEDSTOE
+        left join HI_BIL_MED_PIPY_OE_PM pipypm ON pipyoe.id_medpipyoe = pipypm.id_medpipyoe
+        where t1.SD_SC_STA_cd = '2'
+        and t4.SD_APPTSTATUS_CD in ('4','5')
+        and t1.id_scda in
+       (
+       --查询指定日期停诊的排班
+				SELECT 
+				    t1.id_scda AS IDSCDA
+				    /*,
+				    t1.id_scres AS IDSCRES,
+				    t1.sd_stp_cd AS SDSTPCD,
+				    t1.dt_stp AS DTSTP,
+				    t1.da_sc AS DA_SC*/
+				FROM (
+				    SELECT 
+				        t.ID_SCDA AS id_scda,
+				        t.ID_SCRES AS id_scres,
+				        t.SD_STP_CD AS sd_stp_cd,
+				        t.dt_stp,
+				        t.da_sc
+				    FROM HI_SC_DA t
+				    WHERE t.SD_SC_STA_cd = '2'
+				    ORDER BY t.dt_stp DESC
+				) t1
+				WHERE TRUNC(t1.DA_SC) = TRUNC(TO_DATE('2025-04-03', 'YYYY-MM-DD'))
+				)
