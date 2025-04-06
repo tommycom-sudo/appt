@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 
 // 定义数据类型
 type StopPatient = {
-  id: string;
+  idPi: string;
   name: string;
   phone: string;
   hospitalName: string;
@@ -33,7 +33,7 @@ const columns: ProColumns<StopPatient>[] = [
   },
   {
     title: '患者ID',
-    dataIndex: 'id',
+    dataIndex: 'idPi',
     valueType: 'text',
     copyable: true,
     ellipsis: true,
@@ -66,6 +66,23 @@ const columns: ProColumns<StopPatient>[] = [
     valueType: 'text',
   },
   {
+    title: '就诊时间',
+    dataIndex: 'visitTime',
+    valueType: 'dateTime',
+    render: (dom: any, entity: StopPatient) => {
+      if (!entity.visitTime) return '-';
+      const date = new Date(entity.visitTime);
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    }
+  },
+  {
     title: '患者类型',
     dataIndex: 'priorityLevel',
     valueEnum: {
@@ -87,7 +104,7 @@ const exportToExcel = (data: any[], filename: string) => {
   try {
     const exportData = data.map(item => ({
       '患者姓名': item.name,
-      '患者ID': item.id,
+      '患者ID': item.idPi,
       '联系电话': item.phone,
       '机构名称': item.hospitalName,
       '科室名称': item.departmentName,

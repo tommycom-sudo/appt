@@ -117,7 +117,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       data: result.rows.map((row: any) => ({
-        id: row.IDPI,
+        idPi: row.IDPI,
         name: row.NAPI,
         phone: row.MOBILERG,
         hospitalName: row.JGMC,
