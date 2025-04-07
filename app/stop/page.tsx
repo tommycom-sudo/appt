@@ -1,7 +1,7 @@
 'use client';
 //http://localhost:3000/api/patients/stop?stopDate=2025-04-03&pageSize=100&current=1
 import { useEffect, useState } from 'react';
-import { Button, message, DatePicker, Space } from 'antd';
+import { Button, message, DatePicker, Space, Modal } from 'antd';
 import { ExportOutlined, DollarOutlined, HistoryOutlined } from '@ant-design/icons';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -22,6 +22,18 @@ type StopPatient = {
   refundStatus: string;
   visitTime: string;
   visitId: string;
+};
+
+// 定义退费日志数据类型
+type RefundLog = {
+  id: number;
+  visitId: string;
+  patientName: string;
+  patientId: string;
+  refundTime: string;
+  refundStatus: string;
+  errorMessage: string;
+  operator: string;
 };
 
 // 定义列配置
@@ -192,6 +204,7 @@ export default function StopPatientList() {
   const [mounted, setMounted] = useState(false);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [stopDate, setStopDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
+  const [isLogModalVisible, setIsLogModalVisible] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -202,93 +215,178 @@ export default function StopPatientList() {
   }
 
   return (
-    <ProTable<StopPatient>
-      columns={columns}
-      request={async (params) => {
-        // 构建查询参数
-        const { current, pageSize, ...rest } = params;
-        const queryParams = new URLSearchParams({
-          current: current?.toString() || '1',
-          pageSize: pageSize?.toString() || '10',
-          stopDate: stopDate,
-          ...rest,
-        });
+    <>
+      <ProTable<StopPatient>
+        columns={columns}
+        request={async (params) => {
+          // 构建查询参数
+          const { current, pageSize, ...rest } = params;
+          const queryParams = new URLSearchParams({
+            current: current?.toString() || '1',
+            pageSize: pageSize?.toString() || '10',
+            stopDate: stopDate,
+            ...rest,
+          });
 
-        // 发送请求
-        const res = await fetch(`/api/patients/stop?${queryParams}`);
-        const data = await res.json();
-        console.log("data===============",data);
-        return {
-          data: data.data,
-          success: data.success,
-          total: data.total,
-          pageSize: pageSize,
-          current: current,
-        };
-      }}
-      rowKey="visitId"
-      pagination={{
-        showSizeChanger: true,
-        showQuickJumper: true,
-        pageSizeOptions: ['10', '20', '50', '100'],
-        defaultPageSize: 10
-      }}
-      search={{
-        labelWidth: 'auto',
-      }}
-      dateFormatter="string"
-      headerTitle="停诊关联患者清单"
-      toolBarRender={() => [
-        <Space key="datePicker">
-          <span>停诊日期：</span>
-          <DatePicker 
-            value={dayjs(stopDate)} 
-            onChange={(date) => {
-              if (date) {
-                setStopDate(date.format('YYYY-MM-DD'));
-              }
+          // 发送请求
+          const res = await fetch(`/api/patients/stop?${queryParams}`);
+          const data = await res.json();
+          console.log("data===============",data);
+          return {
+            data: data.data,
+            success: data.success,
+            total: data.total,
+            pageSize: pageSize,
+            current: current,
+          };
+        }}
+        rowKey="visitId"
+        pagination={{
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          defaultPageSize: 10
+        }}
+        search={{
+          labelWidth: 'auto',
+        }}
+        dateFormatter="string"
+        headerTitle="停诊关联患者清单"
+        toolBarRender={() => [
+          <Space key="datePicker">
+            <span>停诊日期：</span>
+            <DatePicker 
+              value={dayjs(stopDate)} 
+              onChange={(date) => {
+                if (date) {
+                  setStopDate(date.format('YYYY-MM-DD'));
+                }
+              }}
+            />
+          </Space>,
+          <Button
+            key="refund"
+            icon={<DollarOutlined />}
+            disabled={!selectedRows?.length}
+            onClick={() => handleRefund(selectedRows)}
+          >
+            退费
+          </Button>,
+          <Button
+            key="refundLog"
+            icon={<HistoryOutlined />}
+            onClick={() => setIsLogModalVisible(true)}
+          >
+            退费日志
+          </Button>,
+          <Button
+            key="exportAll"
+            icon={<ExportOutlined />}
+            onClick={async () => {
+              const res = await fetch(`/api/patients/stop?stopDate=${stopDate}`);
+              const data = await res.json();
+              exportToExcel(data.data, '停诊患者列表');
             }}
-          />
-        </Space>,
-        <Button
-          key="refund"
-          icon={<DollarOutlined />}
-          disabled={!selectedRows?.length}
-          onClick={() => handleRefund(selectedRows)}
-        >
-          退费
-        </Button>,
-        <Button
-          key="refundLog"
-          icon={<HistoryOutlined />}
-          onClick={() => window.location.href = '/refund-log'}
-        >
-          退费日志
-        </Button>,
-        <Button
-          key="exportAll"
-          icon={<ExportOutlined />}
-          onClick={async () => {
-            const res = await fetch(`/api/patients/stop?stopDate=${stopDate}`);
+          >
+            导出 Excel
+          </Button>,
+          <Button
+            key="export"
+            disabled={!selectedRows?.length}
+            onClick={() => exportToExcel(selectedRows, '停诊患者列表')}
+          >
+            导出选择
+          </Button>
+        ]}
+        rowSelection={{
+          onChange: (_, selectedRows) => {
+            setSelectedRows(selectedRows);
+          }
+        }}
+      />
+      <Modal
+        title="退费日志"
+        open={isLogModalVisible}
+        onCancel={() => setIsLogModalVisible(false)}
+        width={1200}
+        footer={null}
+      >
+        <ProTable<RefundLog>
+          columns={[
+            {
+              title: '患者姓名',
+              dataIndex: 'patientName',
+              valueType: 'text',
+            },
+            {
+              title: '患者ID',
+              dataIndex: 'patientId',
+              valueType: 'text',
+              copyable: true,
+              ellipsis: true,
+            },
+            {
+              title: '就诊ID',
+              dataIndex: 'visitId',
+              valueType: 'text',
+              copyable: true,
+              ellipsis: true,
+            },
+            {
+              title: '退费时间',
+              dataIndex: 'refundTime',
+              valueType: 'dateTime',
+            },
+            {
+              title: '退费状态',
+              dataIndex: 'refundStatus',
+              valueType: 'text',
+            },
+            {
+              title: '错误信息',
+              dataIndex: 'errorMessage',
+              valueType: 'text',
+              ellipsis: true,
+            },
+            {
+              title: '操作人',
+              dataIndex: 'operator',
+              valueType: 'text',
+            },
+          ]}
+          request={async (params) => {
+            const { current, pageSize, ...rest } = params;
+            const queryParams = new URLSearchParams({
+              current: current?.toString() || '1',
+              pageSize: pageSize?.toString() || '10',
+              ...rest,
+            });
+
+            const res = await fetch(`/api/refund/log?${queryParams}`);
             const data = await res.json();
-            exportToExcel(data.data, '停诊患者列表');
+            
+            return {
+              data: data.data,
+              success: data.success,
+              total: data.total,
+              pageSize: pageSize,
+              current: current,
+            };
           }}
-        >
-          导出 Excel
-        </Button>,
-        <Button
-          key="export"
-          disabled={!selectedRows?.length}
-          onClick={() => exportToExcel(selectedRows, '停诊患者列表')}
-        >
-          导出选择
-        </Button>
-      ]}
-      rowSelection={{
-        onChange: (_, selectedRows) => {
-          setSelectedRows(selectedRows);
-        }
-      }}
-    />
+          rowKey="id"
+          pagination={{
+            showSizeChanger: true,
+            showQuickJumper: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            defaultPageSize: 10
+          }}
+          search={{
+            labelWidth: 'auto',
+          }}
+          dateFormatter="string"
+          toolBarRender={false}
+        />
+      </Modal>
+    </>
   );
 } 
