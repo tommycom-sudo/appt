@@ -2,7 +2,7 @@
 //http://localhost:3000/api/patients/stop?stopDate=2025-04-03&pageSize=100&current=1
 import { useEffect, useState } from 'react';
 import { Button, message, DatePicker, Space } from 'antd';
-import { ExportOutlined, DollarOutlined } from '@ant-design/icons';
+import { ExportOutlined, DollarOutlined, HistoryOutlined } from '@ant-design/icons';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import * as XLSX from 'xlsx';
@@ -257,6 +257,13 @@ export default function StopPatientList() {
           onClick={() => handleRefund(selectedRows)}
         >
           退费
+        </Button>,
+        <Button
+          key="refundLog"
+          icon={<HistoryOutlined />}
+          onClick={() => window.location.href = '/refund-log'}
+        >
+          退费日志
         </Button>,
         <Button
           key="exportAll"
