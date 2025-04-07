@@ -59,11 +59,13 @@ export async function POST(request: Request) {
     
     // 处理特殊响应情况
     let specialMessage = null;
+    let errorMsg = null;
     if (responseData.code === 200 && responseData.body) {
       try {
         const bodyData = JSON.parse(responseData.body);
         if (bodyData.status === 'CANCEL') {
           specialMessage = '退费失败，原因：'+ bodyData.finishData;
+          errorMsg = bodyData.finishData;
         }
       } catch (e) {
         console.error('解析响应体失败:', e);
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
     
     // 记录响应结果
     const requestResult = response.ok ? 'SUCCESS' : 'FAIL';
-    const errorMessage = response.ok ? null : JSON.stringify(responseData);
+    const errorMessage = errorMsg || (response.ok ? null : JSON.stringify(responseData));
     
     // 执行日志插入
     console.log('开始插入日志...');
