@@ -60,7 +60,23 @@ export async function query(sql: string, params: any[] = []): Promise<QueryResul
     const result = await connection.execute(sql, params, {
       outFormat: oracledb.OUT_FORMAT_OBJECT,
     });
+    
+    // 显式提交事务
+    await connection.commit();
+    console.log("事务已提交");
+    
     return result as QueryResult;
+  } catch (error) {
+    // 如果发生错误，回滚事务
+    if (connection) {
+      try {
+        await connection.rollback();
+        console.log("事务已回滚");
+      } catch (rollbackError) {
+        console.error('回滚事务错误:', rollbackError);
+      }
+    }
+    throw error;
   } finally {
     if (connection) {
       try {

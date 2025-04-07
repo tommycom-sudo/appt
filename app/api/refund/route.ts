@@ -1,9 +1,34 @@
 import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
+  let requestBody: any;
   try {
-    const body = await request.json();
+    requestBody = await request.json();
+    console.log('退费请求体:', requestBody);
     
+    const headersList = headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+    console.log('客户端IP:', ipAddress);
+    
+    // 记录请求日志
+    const logSql = `
+      INSERT INTO REFUND_REQUEST_LOG (
+        ID_VISMED,
+        IP_ADDRESS,
+        OPERATOR,
+        REQUEST_CONTENT,
+        REQUEST_RESULT,
+        RESPONSE_CONTENT,
+        ERROR_MESSAGE
+      ) VALUES (
+        :1, :2, :3, :4, :5, :6, :7
+      )
+    `;
+    
+    // 调用退费接口
+    console.log('开始调用退费接口...');
     const response = await fetch('https://hihistest.smukqyy.cn/*.jsonRequest', {
       method: 'POST',
       headers: {
@@ -25,14 +50,72 @@ export async function POST(request: Request) {
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(requestBody)
     });
 
-    const data = await response.json();
+    console.log('退费接口响应状态:', response.status);
+    const responseData = await response.json();
+    console.log('退费接口响应数据:', responseData);
     
-    return NextResponse.json(data);
+    // 记录响应结果
+    const requestResult = response.ok ? 'SUCCESS' : 'FAIL';
+    const errorMessage = response.ok ? null : JSON.stringify(responseData);
+    
+    // 执行日志插入
+    console.log('开始插入日志...');
+    const logParams = [
+      requestBody[0]?.idVismed || 'UNKNOWN',
+      ipAddress,
+      'SYSTEM', // 这里可以替换为实际的用户信息
+      JSON.stringify(requestBody),
+      requestResult,
+      JSON.stringify(responseData),
+      errorMessage
+    ];
+    console.log('日志参数:', logParams);
+    
+    const logResult = await query(logSql, logParams);
+    console.log('日志插入结果:', logResult);
+    
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error('退费请求失败:', error);
+    
+    // 记录错误日志
+    try {
+      console.log('开始插入错误日志...');
+      const logSql = `
+        INSERT INTO REFUND_REQUEST_LOG (
+          ID_VISMED,
+          IP_ADDRESS,
+          OPERATOR,
+          REQUEST_CONTENT,
+          REQUEST_RESULT,
+          ERROR_MESSAGE
+        ) VALUES (
+          :1, :2, :3, :4, :5, :6
+        )
+      `;
+      
+      const headersList = headers();
+      const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+      
+      const errorLogParams = [
+        'UNKNOWN',
+        ipAddress,
+        'SYSTEM',
+        JSON.stringify(requestBody || {}),
+        'FAIL',
+        error instanceof Error ? error.message : String(error)
+      ];
+      console.log('错误日志参数:', errorLogParams);
+      
+      const errorLogResult = await query(logSql, errorLogParams);
+      console.log('错误日志插入结果:', errorLogResult);
+    } catch (logError) {
+      console.error('记录日志失败:', logError);
+    }
+    
     return NextResponse.json(
       { error: '退费请求失败' },
       { status: 500 }
