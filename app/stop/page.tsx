@@ -83,18 +83,23 @@ const columns: ProColumns<StopPatient>[] = [
     }
   },
   {
-    title: '患者类型',
+    title: '支付方式',
     dataIndex: 'priorityLevel',
     valueEnum: {
-      '1': { text: '普通', status: 'Default' },
-      '2': { text: '急诊', status: 'Error' },
-      '3': { text: 'VIP', status: 'Success' },
-      '4': { text: '其他', status: 'Warning' },
+      '1': { text: '现金', status: 'Default' },
+      '2': { text: '？', status: 'Error' },
+      '3': { text: '？', status: 'Success' },
+      '4': { text: '？', status: 'Warning' },
     },
   },
   {
     title: '医生姓名',
     dataIndex: 'doctorName',
+    valueType: 'text',
+  },
+  {
+    title: '预约状态',
+    dataIndex: 'refundStatus',
     valueType: 'text',
   },
 ];
@@ -110,7 +115,7 @@ const exportToExcel = (data: any[], filename: string) => {
       '科室名称': item.departmentName,
       '停诊日期': item.appointmentDate,
       '停诊原因': item.appointmentType,
-      '患者类型': item.priorityLevel === '1' ? '普通' : 
+      '支付方式': item.priorityLevel === '1' ? '普通' : 
                  item.priorityLevel === '2' ? '急诊' : 
                  item.priorityLevel === '3' ? 'VIP' : '其他',
       '医生姓名': item.doctorName

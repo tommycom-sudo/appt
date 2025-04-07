@@ -69,7 +69,7 @@ export async function GET(request: Request) {
             map_dic_item_na(t1.sd_sp_res_cd, 'hi.his.spRes') as sd_sp_res_cd,
             NVL(pipypm.SD_PIPYPM_CD, '4') as sd_pipypm_cd,
             t6.na as ysmc,
-            DECODE(T4.SD_APPTSTATUS_CD , '4', '已退款', '5','未退', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
+            DECODE(T4.SD_APPTSTATUS_CD , '4', '4-已退款', '5','5-已付费', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
             t4.dt_b_est AS jzsj,
             stoe.id_vismed
           FROM HI_SC_DA t1
