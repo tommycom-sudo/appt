@@ -57,6 +57,19 @@ export async function POST(request: Request) {
     const responseData = await response.json();
     console.log('退费接口响应数据:', responseData);
     
+    // 处理特殊响应情况
+    let specialMessage = null;
+    if (responseData.code === 200 && responseData.body) {
+      try {
+        const bodyData = JSON.parse(responseData.body);
+        if (bodyData.status === 'CANCEL') {
+          specialMessage = '退费失败，原因：'+ bodyData.finishData;
+        }
+      } catch (e) {
+        console.error('解析响应体失败:', e);
+      }
+    }
+    
     // 记录响应结果
     const requestResult = response.ok ? 'SUCCESS' : 'FAIL';
     const errorMessage = response.ok ? null : JSON.stringify(responseData);
@@ -77,7 +90,10 @@ export async function POST(request: Request) {
     const logResult = await query(logSql, logParams);
     console.log('日志插入结果:', logResult);
     
-    return NextResponse.json(responseData);
+    return NextResponse.json({
+      ...responseData,
+      specialMessage
+    });
   } catch (error) {
     console.error('退费请求失败:', error);
     

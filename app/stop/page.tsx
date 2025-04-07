@@ -168,6 +168,9 @@ const handleRefund = async (selectedRows: StopPatient[]) => {
       const result = await response.json();
       if (result.error) {
         message.error(result.error);
+      } else if (result.specialMessage) {
+        // 显示特殊消息
+        message.warning(result.specialMessage);
       } else {
         message.success('退费请求已发送');
       }
