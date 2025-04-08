@@ -1,5 +1,5 @@
 连接池创建成功
-Database error: Error: ORA-12704: 字符集不匹配
+Database error: Error: ORA-12704: 字符集不匹配  （这是case里的问题，并非连接问题）
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 

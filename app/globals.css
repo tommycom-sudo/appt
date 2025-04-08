@@ -31,3 +31,12 @@ body {
     text-wrap: balance;
   }
 }
+
+/* 覆盖 Ant Design ProTable 的悬停样式 */
+.ant-table-row:hover {
+  background-color: #e6f7ff !important;
+}
+
+.ant-table-row:hover td {
+  background-color: #e6f7ff !important;
+}
