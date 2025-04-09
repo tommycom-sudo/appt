@@ -67,8 +67,8 @@ export async function GET(request: Request) {
             DECODE(t3.na, 'H-口腔预防科(牙体牙髓病科三室)', 'H-口腔预防科', t3.na) || '(' || t6.na || ')' as ksmc,
             TO_CHAR(t1.da_sc, 'yyyy-MM-dd') as da_sc,
             map_dic_item_na(t1.sd_sp_res_cd, 'hi.his.spRes') as sd_sp_res_cd,
-            NVL(pipypm.SD_PIPYPM_CD, '4') as sd_pipypm_cd,
-            t6.na as ysmc,
+            NVL(pipypm.SD_PIPYPM_CD, '未知') as sd_pipypm_cd,
+            t6.cd || '-' || t6.na as ysmc,
             DECODE(T4.SD_APPTSTATUS_CD , '4', '4-已退款', '5','5-已付费', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
             t4.dt_b_est AS jzsj,
             stoe.id_vismed
@@ -138,6 +138,56 @@ export async function GET(request: Request) {
     console.error('查询停诊患者失败:', error);
     return NextResponse.json(
       { error: '查询停诊患者失败' },
+      { status: 500 }
+    );
+  }
+}
+
+// 添加新的API端点，用于执行用户提供的SQL查询
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { id_tet, endDay } = body;
+
+    if (!id_tet || !endDay) {
+      return NextResponse.json(
+        { error: '缺少必要参数 id_tet 或 endDay' },
+        { status: 400 }
+      );
+    }
+
+    // 构建SQL查询
+    const sql = `
+      SELECT appt.* 
+      FROM hi_appt appt 
+      WHERE appt.id_tet = :1
+        AND appt.insert_time <= TO_DATE(:2, 'YYYY-MM-DD HH24:MI:SS')
+        AND (appt.id_vismed IS NULL OR appt.id_vismed = '')
+        AND appt.delete_flag = '0' 
+        AND appt.SD_APPTSTATUS_CD = '1' 
+        AND appt.fg_pay = '0'
+      ORDER BY appt.insert_time ASC
+    `;
+
+    console.log('执行SQL查询:', sql);
+    console.log('查询参数:', [id_tet, endDay]);
+
+    const result = await query(sql, [id_tet, endDay]);
+    
+    console.log('查询结果:', {
+      rowCount: result.rows?.length || 0,
+      metaData: result.metaData
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows,
+      total: result.rows?.length || 0
+    });
+  } catch (error) {
+    console.error('执行SQL查询失败:', error);
+    return NextResponse.json(
+      { error: '执行SQL查询失败' },
       { status: 500 }
     );
   }

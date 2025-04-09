@@ -29,13 +29,17 @@ export async function POST(request: Request) {
     
     // 调用退费接口
     console.log('开始调用退费接口...');
-    const response = await fetch('https://hihistest.smukqyy.cn/*.jsonRequest', {
+    const apiUrl = process.env.NEXT_PUBLIC_REFUND_API_URL;
+    if (!apiUrl) {
+      throw new Error('API地址未配置');
+    }
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Accept': '*/*',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
         'Connection': 'keep-alive',
-        'Cookie': 'tk=6683589ba6e7540015a3ab06',
+        'Cookie': 'tk=66f4fbe6f576a100150e7ef9',
         'Origin': 'https://hihistest.smukqyy.cn',
         'Referer': 'https://hihistest.smukqyy.cn/',
         'Sec-Fetch-Dest': 'empty',

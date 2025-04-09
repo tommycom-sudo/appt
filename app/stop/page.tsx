@@ -99,9 +99,9 @@ const columns: ProColumns<StopPatient>[] = [
     dataIndex: 'priorityLevel',
     valueEnum: {
       '1': { text: '现金', status: 'Default' },
-      '2': { text: '？', status: 'Error' },
-      '3': { text: '？', status: 'Success' },
-      '4': { text: '？', status: 'Warning' },
+      '2': { text: '储值金', status: 'Error' },
+      '3': { text: '支付宝', status: 'Success' },
+      '4': { text: '微信', status: 'Warning' },
     },
   },
   {
@@ -113,6 +113,13 @@ const columns: ProColumns<StopPatient>[] = [
     title: '预约状态',
     dataIndex: 'refundStatus',
     valueType: 'text',
+  },
+  {
+    title: '就诊ID',
+    dataIndex: 'visitId',
+    valueType: 'text',
+    copyable: true,
+    ellipsis: true,
   },
 ];
 
@@ -130,7 +137,8 @@ const exportToExcel = (data: any[], filename: string) => {
       '支付方式': item.priorityLevel === '1' ? '普通' : 
                  item.priorityLevel === '2' ? '急诊' : 
                  item.priorityLevel === '3' ? 'VIP' : '其他',
-      '医生姓名': item.doctorName
+      '医生姓名': item.doctorName,
+      '就诊ID': item.visitId
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -144,7 +152,8 @@ const exportToExcel = (data: any[], filename: string) => {
       {wch: 12}, // 停诊日期
       {wch: 15}, // 停诊原因
       {wch: 10}, // 患者类型
-      {wch: 10}  // 医生姓名
+      {wch: 10}, // 医生姓名
+      {wch: 15}  // 就诊ID
     ];
     ws['!cols'] = wscols;
 
