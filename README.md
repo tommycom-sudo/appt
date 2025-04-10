@@ -1,5 +1,14 @@
 连接池创建成功
 Database error: Error: ORA-12704: 字符集不匹配  （这是case里的问题，并非连接问题）
+app
+   stop  停诊患者清单（给第三方退款，日期查询）
+   fd-refund  方鼎退款 (里面还有个modal显示退费日志)
+   refund-log 退费日志
+   schedule  排班界面，支持编辑
+   pati  (显示员工信息,也是临时用，只是一个初始版本）
+      -/api/patients
+api
+query (这是router.ts)，查询员工信息（只是一个模板） 应该没用
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
