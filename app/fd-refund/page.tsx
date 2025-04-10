@@ -21,7 +21,7 @@ export default function FdRefundPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          operatorId: 'SYSTEM', // 这里可以根据实际情况修改
+          operatorId: 'His001', // 这里可以根据实际情况修改
           orderNo: values.orderNo,
           refundAmount: values.refundAmount,
           refundReason: values.refundReason,
