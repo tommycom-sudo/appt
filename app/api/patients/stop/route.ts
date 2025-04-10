@@ -71,7 +71,8 @@ export async function GET(request: Request) {
             t6.cd || '-' || t6.na as ysmc,
             DECODE(T4.SD_APPTSTATUS_CD , '4', '4-已退款', '5','5-已付费', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
             t4.dt_b_est AS jzsj,
-            stoe.id_vismed
+            stoe.id_vismed,
+            t7.id_appt
           FROM HI_SC_DA t1
           LEFT JOIN bbp.hi_sys_org t2 ON t2.id_org = t1.id_org
           LEFT JOIN bbp.hi_sys_dep t3 ON t3.id_dep = t1.ID_DEP_RES
@@ -84,21 +85,7 @@ export async function GET(request: Request) {
           LEFT JOIN HI_BIL_MED_PIPY_OE_PM pipypm ON pipyoe.id_medpipyoe = pipypm.id_medpipyoe
           WHERE t1.SD_SC_STA_cd = '2'
             AND t4.SD_APPTSTATUS_CD IN ('4', '5')
-            AND t1.id_scda IN (
-              SELECT t1.id_scda
-              FROM (
-                SELECT 
-                  t.ID_SCDA AS id_scda,
-                  t.ID_SCRES AS id_scres,
-                  t.SD_STP_CD AS sd_stp_cd,
-                  t.dt_stp,
-                  t.da_sc
-                FROM HI_SC_DA t
-                WHERE t.SD_SC_STA_cd = '2'
-                ORDER BY t.dt_stp DESC
-              ) t1
-              WHERE TRUNC(t1.DA_SC) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
-            )
+            AND TRUNC(t1.da_sc) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
           ORDER BY t1.da_sc DESC
         ) a WHERE ROWNUM <= :2
       ) WHERE rnum > :3
@@ -128,7 +115,8 @@ export async function GET(request: Request) {
         doctorName: row.YSMC,
         refundStatus: row.SD_APPTSTATUS_CD,
         visitTime: row.JZSJ,
-        visitId: row.ID_VISMED
+        visitId: row.ID_VISMED,
+        idAppt: row.ID_APPT
       })),
       total,
       pageSize,

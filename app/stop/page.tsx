@@ -22,6 +22,7 @@ type StopPatient = {
   refundStatus: string;
   visitTime: string;
   visitId: string;
+  idAppt: string;
 };
 
 // 定义退费日志数据类型
@@ -42,6 +43,13 @@ const columns: ProColumns<StopPatient>[] = [
     title: '患者姓名',
     dataIndex: 'name',
     valueType: 'text',
+  },
+  {
+    title: '预约ID',
+    dataIndex: 'idAppt',
+    valueType: 'text',
+    copyable: true,
+    ellipsis: true,
   },
   {
     title: '患者ID',
@@ -249,7 +257,7 @@ export default function StopPatientList() {
             current: current,
           };
         }}
-        rowKey="visitId"
+        rowKey="idAppt"
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,
