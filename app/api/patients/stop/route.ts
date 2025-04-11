@@ -72,7 +72,9 @@ export async function GET(request: Request) {
             DECODE(T4.SD_APPTSTATUS_CD , '4', '4-已退款', '5','5-已付费', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
             t4.dt_b_est AS jzsj,
             stoe.id_vismed,
-            t7.id_appt
+            t7.id_appt,
+            t4.REAN_CANC,
+            t1.dt_stp
           FROM HI_SC_DA t1
           LEFT JOIN bbp.hi_sys_org t2 ON t2.id_org = t1.id_org
           LEFT JOIN bbp.hi_sys_dep t3 ON t3.id_dep = t1.ID_DEP_RES
@@ -116,7 +118,9 @@ export async function GET(request: Request) {
         refundStatus: row.SD_APPTSTATUS_CD,
         visitTime: row.JZSJ,
         visitId: row.ID_VISMED,
-        idAppt: row.ID_APPT
+        idAppt: row.ID_APPT,
+        reanCancel: row.REAN_CANC,
+        dtStp: row.DT_STP
       })),
       total,
       pageSize,
