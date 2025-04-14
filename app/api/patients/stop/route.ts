@@ -58,7 +58,7 @@ export async function GET(request: Request) {
             DECODE(T4.SD_APPTSTATUS_CD , '4', '4-已退款', '5','5-已付费', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
             t4.dt_b_est AS jzsj,
             stoe.id_vismed,
-            t4.id_appt,
+            t7.id_appt,
             t4.REAN_CANC,
             t1.dt_stp
           FROM HI_SC_DA t1
@@ -107,7 +107,9 @@ export async function GET(request: Request) {
         refundStatus: row.SD_APPTSTATUS_CD,
         visitTime: row.JZSJ,
         visitId: row.ID_VISMED,
-        idAppt: row.ID_APPT
+        idAppt: row.ID_APPT,
+        reanCancel: row.REAN_CANC,
+        dtStp: row.DT_STP
       })),
       total,
       pageSize,

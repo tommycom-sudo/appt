@@ -23,6 +23,8 @@ type StopPatient = {
   visitTime: string;
   visitId: string;
   idAppt: string;
+  reanCancel: string;
+  dtStp: string;
 };
 
 // 定义退费日志数据类型
@@ -123,6 +125,17 @@ const columns: ProColumns<StopPatient>[] = [
     valueType: 'text',
   },
   {
+    title: '取消原因',
+    dataIndex: 'reanCancel',
+    valueType: 'text',
+    ellipsis: true,
+  },
+  {
+    title: '医生操作停诊时间',
+    dataIndex: 'dtStp',
+    valueType: 'dateTime',
+  },
+  {
     title: '就诊ID',
     dataIndex: 'visitId',
     valueType: 'text',
@@ -142,10 +155,13 @@ const exportToExcel = (data: any[], filename: string) => {
       '科室名称': item.departmentName,
       '停诊日期': item.appointmentDate,
       '停诊原因': item.appointmentType,
-      '支付方式': item.priorityLevel === '1' ? '普通' : 
+      '患者类型': item.priorityLevel === '1' ? '普通' : 
                  item.priorityLevel === '2' ? '急诊' : 
                  item.priorityLevel === '3' ? 'VIP' : '其他',
       '医生姓名': item.doctorName,
+      '预约状态': item.refundStatus,
+      '取消原因': item.reanCancel,
+      '医生操作停诊时间': item.dtStp,
       '就诊ID': item.visitId
     }));
 
@@ -161,6 +177,9 @@ const exportToExcel = (data: any[], filename: string) => {
       {wch: 15}, // 停诊原因
       {wch: 10}, // 患者类型
       {wch: 10}, // 医生姓名
+      {wch: 15}, // 预约状态
+      {wch: 15}, // 取消原因
+      {wch: 15}, // 医生操作停诊时间
       {wch: 15}  // 就诊ID
     ];
     ws['!cols'] = wscols;
