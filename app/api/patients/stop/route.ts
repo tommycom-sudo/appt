@@ -31,23 +31,9 @@ export async function GET(request: Request) {
       SELECT COUNT(*) as total
       FROM HI_SC_DA t1
       LEFT JOIN hi_appt t4 ON t4.id_scda = t1.id_scda
-      WHERE t1.SD_SC_STA_cd = '2'
+      WHERE t1.SD_SC_STA_cd IN ('2', '6')
         AND t4.SD_APPTSTATUS_CD IN ('4', '5')
-        AND t1.id_scda IN (
-          SELECT t1.id_scda
-          FROM (
-            SELECT 
-              t.ID_SCDA AS id_scda,
-              t.ID_SCRES AS id_scres,
-              t.SD_STP_CD AS sd_stp_cd,
-              t.dt_stp,
-              t.da_sc
-            FROM HI_SC_DA t
-            WHERE t.SD_SC_STA_cd = '2'
-            ORDER BY t.dt_stp DESC
-          ) t1
-          WHERE TRUNC(t1.DA_SC) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
-        )
+        AND TRUNC(t1.da_sc) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
     `;
     
     const countResult = await query(countSql, [stopDate]);
@@ -72,7 +58,9 @@ export async function GET(request: Request) {
             DECODE(T4.SD_APPTSTATUS_CD , '4', '4-已退款', '5','5-已付费', T4.SD_APPTSTATUS_CD) AS SD_APPTSTATUS_CD,
             t4.dt_b_est AS jzsj,
             stoe.id_vismed,
-            t7.id_appt
+            t4.id_appt,
+            t4.REAN_CANC,
+            t1.dt_stp
           FROM HI_SC_DA t1
           LEFT JOIN bbp.hi_sys_org t2 ON t2.id_org = t1.id_org
           LEFT JOIN bbp.hi_sys_dep t3 ON t3.id_dep = t1.ID_DEP_RES
@@ -83,10 +71,10 @@ export async function GET(request: Request) {
           LEFT JOIN Hi_bil_Med_st_oe stoe ON stoe.id_vismed = t4.id_vismed AND stoe.SD_MEDST_CD = '112'
           LEFT JOIN HI_BIL_MED_PIPY_OE pipyoe ON t4.ID_VISMED = pipyoe.ID_VISMED AND pipyoe.eu_direct = '1' AND stoe.ID_MEDSTOE = pipyoe.ID_MEDSTOE
           LEFT JOIN HI_BIL_MED_PIPY_OE_PM pipypm ON pipyoe.id_medpipyoe = pipypm.id_medpipyoe
-          WHERE t1.SD_SC_STA_cd = '2'
+          WHERE t1.SD_SC_STA_cd IN ('2', '6')
             AND t4.SD_APPTSTATUS_CD IN ('4', '5')
             AND TRUNC(t1.da_sc) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
-          ORDER BY t1.da_sc DESC
+          ORDER BY t1.da_sc DESC, t1.dt_stp DESC
         ) a WHERE ROWNUM <= :2
       ) WHERE rnum > :3
     `;
@@ -98,7 +86,10 @@ export async function GET(request: Request) {
     
     console.log('查询结果:', {
       rowCount: result.rows?.length || 0,
-      metaData: result.metaData
+      firstRow: result.rows?.[0],  // 显示第一行数据
+      totalRows: total,  // 显示总行数
+      currentPage: current,  // 显示当前页码
+      pageSize: pageSize  // 显示每页大小
     });
 
     return NextResponse.json({
@@ -161,11 +152,6 @@ export async function POST(request: Request) {
     console.log('查询参数:', [id_tet, endDay]);
 
     const result = await query(sql, [id_tet, endDay]);
-    
-    console.log('查询结果:', {
-      rowCount: result.rows?.length || 0,
-      metaData: result.metaData
-    });
 
     return NextResponse.json({
       success: true,
