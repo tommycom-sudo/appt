@@ -25,6 +25,8 @@ type StopPatient = {
   idAppt: string;
   reanCancel: string;
   dtStp: string;
+  statusCd: string;
+  statusDesc: string;
 };
 
 // 定义退费日志数据类型
@@ -52,6 +54,20 @@ const columns: ProColumns<StopPatient>[] = [
     valueType: 'text',
     copyable: true,
     ellipsis: true,
+  },
+  {
+    title: '状态',
+    dataIndex: 'statusDesc',
+    valueType: 'text',
+    render: (_, record) => (
+      <span style={{
+        color: record.statusCd === '2' ? '#ff4d4f' : 
+               record.statusCd === '5' ? '#faad14' : 
+               record.statusCd === '6' ? '#52c41a' : '#000000'
+      }}>
+        {record.statusDesc}
+      </span>
+    ),
   },
   {
     title: '患者ID',

@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       SELECT COUNT(*) as total
       FROM HI_SC_DA t1
       LEFT JOIN hi_appt t4 ON t4.id_scda = t1.id_scda
-      WHERE t1.SD_SC_STA_cd IN ('2', '6')
+      WHERE t1.SD_SC_STA_cd IN ('2','5', '6')
         AND t4.SD_APPTSTATUS_CD IN ('4', '5')
         AND TRUNC(t1.da_sc) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
     `;
@@ -60,7 +60,13 @@ export async function GET(request: Request) {
             stoe.id_vismed,
             t7.id_appt,
             t4.REAN_CANC,
-            t1.dt_stp
+            t1.dt_stp,
+            t1.SD_SC_STA_cd,
+            DECODE(t1.SD_SC_STA_cd, 
+                   '2', '停诊',
+                   '5', '时段停诊',
+                   '6', '删除排班',
+                   '未知') as status_desc
           FROM HI_SC_DA t1
           LEFT JOIN bbp.hi_sys_org t2 ON t2.id_org = t1.id_org
           LEFT JOIN bbp.hi_sys_dep t3 ON t3.id_dep = t1.ID_DEP_RES
@@ -71,7 +77,7 @@ export async function GET(request: Request) {
           LEFT JOIN Hi_bil_Med_st_oe stoe ON stoe.id_vismed = t4.id_vismed AND stoe.SD_MEDST_CD = '112'
           LEFT JOIN HI_BIL_MED_PIPY_OE pipyoe ON t4.ID_VISMED = pipyoe.ID_VISMED AND pipyoe.eu_direct = '1' AND stoe.ID_MEDSTOE = pipyoe.ID_MEDSTOE
           LEFT JOIN HI_BIL_MED_PIPY_OE_PM pipypm ON pipyoe.id_medpipyoe = pipypm.id_medpipyoe
-          WHERE t1.SD_SC_STA_cd IN ('2', '6')
+          WHERE t1.SD_SC_STA_cd IN ('2','5', '6')
             AND t4.SD_APPTSTATUS_CD IN ('4', '5')
             AND TRUNC(t1.da_sc) = TRUNC(TO_DATE(:1, 'YYYY-MM-DD'))
           ORDER BY t1.da_sc DESC, t1.dt_stp DESC
@@ -109,7 +115,9 @@ export async function GET(request: Request) {
         visitId: row.ID_VISMED,
         idAppt: row.ID_APPT,
         reanCancel: row.REAN_CANC,
-        dtStp: row.DT_STP
+        dtStp: row.DT_STP,
+        statusCd: row.SD_SC_STA_CD,
+        statusDesc: row.STATUS_DESC
       })),
       total,
       pageSize,
