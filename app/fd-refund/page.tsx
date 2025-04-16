@@ -32,8 +32,10 @@ export default function FdRefundPage() {
       const result = await response.json();
       console.log('退款响应:', result);
 
-      if (result.success) {
-        message.success('退款请求已发送成功');
+      if (response.status === 500) {
+        message.error(result.msg || '退款失败');
+      } else if (response.status === 200) {
+        message.success('退款完成');
         form.resetFields();
       } else {
         message.error(
