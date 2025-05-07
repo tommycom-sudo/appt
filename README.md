@@ -18,7 +18,12 @@ TODO:
 退费
 
 query (这是router.ts)，查询员工信息（只是一个模板） 应该没用
+25.5.7
+增加了两个环境 （但还是没有达到效果）
+http://your-domain/query?env=test
+http://your-domain/query?env=prod
 
+如果不带 env 参数，默认会使用生产环境（prod）。
 25.4.11
 增加了停诊原因，和医生操作停诊时间
 
